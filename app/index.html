@@ -1,0 +1,114 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width">
+    <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+    <!-- build:css(.) styles/vendor.css -->
+    <!-- bower:css -->
+    <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
+    <!-- endbower -->
+    <!-- endbuild -->
+    <!-- build:css(.tmp) styles/main.css -->
+    <link rel="stylesheet" href="styles/main.css">
+    <!-- endbuild -->
+   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/phaser/2.4.8/phaser.js"></script>
+
+<script type="text/javascript">
+// Initialize Phaser, and creates a 400x490px game
+    var game = new Phaser.Game(1500, 400, Phaser.AUTO, 'gameDiv');
+    // Creates a new 'main' state that will contain the game
+    var mainState = {
+        // Function called first to load all the assets
+        preload: function() {
+            // Change the background color of the game
+            game.load.image("background", "./images/deege.png");
+            //game.stage.backgroundColor = '#F099B3';
+            // game.load.image();
+            // Load the bird sprite
+            game.load.image('bird', './images/ki.png');
+            // Load the pipe sprite
+            game.load.image('pipe', './images/arrow.jpg');
+        },
+        // Fuction called after 'preload' to setup the game
+        create: function() {
+            // Set the physics system
+            game.physics.startSystem(Phaser.Physics.ARCADE);
+            background = game.add.tileSprite(100, 0, 1000, 400, "background");
+            
+            // Display the bird on the screen
+            this.bird = this.game.add.sprite(100, 245, 'bird');
+            // Add gravity to the bird to make it fall
+            game.physics.arcade.enable(this.bird);
+            this.bird.body.gravity.y = 1000;
+            // Call the 'jump' function when the spacekey is hit
+            var spaceKey = this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+            spaceKey.onDown.add(this.jump, this);
+            // Create a group of 20 pipes
+            this.pipes = game.add.group();
+            this.pipes.enableBody = true;
+            this.pipes.createMultiple(20, 'pipe');
+            // Timer that calls 'addRowOfPipes' ever 1.5 seconds
+            this.timer = this.game.time.events.loop(1200, this.addRowOfPipes, this);
+            // Add a score label on the top left of the screen
+            this.score = 0;
+            this.labelScore = this.game.add.text(20, 20, "0", { font: "30px Arial", fill: "#ffffff" });
+        },
+        // This function is called 60 times per second
+        update: function() {
+            // If the bird is out of the world (too high or too low), call the 'restartGame' function
+            if (this.bird.inWorld == false)
+                this.restartGame();
+            // If the bird overlap any pipes, call 'restartGame'
+            game.physics.arcade.overlap(this.bird, this.pipes, this.restartGame, null, this);
+        },
+        // Make the bird jump
+        jump: function() {
+            // Add a vertical velocity to the bird
+            this.bird.body.velocity.y = -250;
+        },
+        // Restart the game
+        restartGame: function() {
+            // Start the 'main' state, which restarts the game
+            game.state.start('main');
+        },
+        // Add a pipe on the screen
+        addOnePipe: function(x, y) {
+            // Get the first dead pipe of our group
+            var pipe = this.pipes.getFirstDead();
+            // Set the new position of the pipe
+            pipe.reset(x, y);
+            // Add velocity to the pipe to make it move left
+            pipe.body.velocity.x = -250;
+            // Kill the pipe when it's no longer visible
+            pipe.checkWorldBounds = true;
+            pipe.outOfBoundsKill = true;
+        },
+        // Add a row of 6 pipes with a hole somewhere in the middle
+        addRowOfPipes: function() {
+            var hole = Math.floor(Math.random()*3)+1;
+            for (var i = 0; i < 7; i++)
+                if (i != hole && i != hole +1)
+                    this.addOnePipe(1000, i*60+10);
+            this.score += 1;
+            this.labelScore.text = this.score;
+        },
+    };
+    // Add and start the 'main' state to start the game
+    game.state.add('main', mainState);
+    game.state.start('main');
+
+
+</script> 
+  </head>
+  <body ng-app="ariGameApp" >
+   <div>
+     <div style= "float:center" class="jumbotron">
+        <h1> Help Ari Avoid The MCAT: Arizona Edition</h1>
+            <p>press the spacebar to jump</p>
+    </div>
+</div>
+</body>
+</html>
